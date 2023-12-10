@@ -6,14 +6,15 @@ import pandas as pd
 import asyncio
 import openai
 import google.generativeai as palm
+from collections import Counter
+from statistics import mode
 
 load_dotenv()
 
 openai.api_key = os.getenv("openai_api_key")
 palm.configure(api_key=os.getenv("palm_api_key"))
 
-BATCH_NUM = 20
-
+BATCH_NUM = 10
 
 class Labeler:
     def __init__(self, task, desc, file_path):
@@ -49,14 +50,14 @@ class Labeler:
         model_name = model_type
 
         if model_settings == None:
-            model_settings = {"top_p": 1, "model": model_type, "temperature": 1,
-                              "system_prompt": "You will only output a code block. No text explanation unless specified in the prompt."}
+            model_settings = {"top_p": 1, "model": model_type, "temperature": 1, "remember_chat_context": False,
+                              "system_prompt": "You will only output a csv. No text explanation unless specified in the prompt."}
 
         self.aiconfig.add_model(model_name, model_settings)
         label_inputs = Prompt(
             name=name,
             input="""I want you to help with labeling data for the task of {{ task_name }}. The feature input of the task is {{ input_description }}. The output is a {{ class_num }}-class classification result. The output classes are: {{ output_classes }}. Here are several examples: {{ examples }}
-            Please act as a data labeler, and label the following data: {{ real_inputs }}. There are {{ num_predictions }} inputs and {{ num_prediction}} outputs expected. Return only the predicted outputs in a python list, which should have {{ num_selected }} elements. """,
+            Please act as a data labeler, and label the following data: {{ real_inputs }}. There are {{ num_predictions }} inputs and {{ num_prediction}} outputs expected. Return only the predicted outputs separated by a comma.""",
             metadata={"model": {"name": model_type,
                                 "settings": {"model": model_type}}}
         )
@@ -74,7 +75,7 @@ class Labeler:
         self.aiconfig.save(path+fname, include_outputs=False)
 
 
-    async def predict(self, path, labeler, mode=True):
+    async def predict(self, path, labeler, calculate_mode=True, default_mode=""):
         """
         Generate predictions to text inputs.
         
@@ -112,17 +113,26 @@ class Labeler:
                 try:
                     completion = await self.aiconfig.run(model, params=params)
                     pred_str = self.aiconfig.get_output_text(model)
-                    pred_str = pred_str[1:-1]
                     pred_str = pred_str.replace('\'', '')
                     pred_str = pred_str.replace('\"', '')
                     predictions_lst = [x.strip() for x in pred_str.split(',')]
                     cur_res_df[model] = predictions_lst
                     success.append(model)
-                except:
+                except Exception as e:
+                    print(e)
                     print("error in " + model + " output\n")
-
-            if mode:
-                cur_res_df['Mode'] = cur_res_df[success].mode(axis=1).iloc[:, 0]
+                            
+            def custom_mode(df, model_list, default_label):
+                model_results = [df[model] for model in model_list]
+                counter = Counter(model_results)
+                mode_of_results = mode(model_results)
+                if counter[mode_of_results] == 1:
+                    return default_label
+                else:
+                    return mode_of_results
+            
+            if calculate_mode:
+                cur_res_df['Mode'] = cur_res_df.apply(lambda x: custom_mode(x, success, default_mode), axis=1)
                 result_df = pd.concat([result_df, cur_res_df], ignore_index=True)
 
         return result_df
