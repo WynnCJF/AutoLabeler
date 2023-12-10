@@ -116,6 +116,7 @@ class Labeler:
                     pred_str = pred_str.replace('\'', '')
                     pred_str = pred_str.replace('\"', '')
                     predictions_lst = [x.strip() for x in pred_str.split(',')]
+                    predictions_lst = [x.lower() for x in predictions_lst]
                     cur_res_df[model] = predictions_lst
                     success.append(model)
                 except Exception as e:
