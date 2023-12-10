@@ -98,12 +98,16 @@ class Labeler:
         result_df = pd.DataFrame(columns=['Input'] + labeler + ['Mode'])
         
         my_bar = st.progress(0.0)
-        for i in range(run_iterations):
+        for i in range(run_iterations + 1):
             start = i * BATCH_NUM
-            end = (i + 1) * BATCH_NUM
-            my_bar.progress((i+1)/run_iterations, text=f"Processing samples {start} to {min(end, total_samples)}")
+            end = min((i + 1) * BATCH_NUM, total_samples)
             
-            print("Processing " + str(start) + " to " + str(min(end, total_samples)) + "\n")
+            if start == end:
+                break
+            
+            my_bar.progress(end/total_samples, text=f"Processing samples {end} / {total_samples}")
+            
+            print("Processing " + str(start) + " to " + str(end) + "\n")
             cur_df = df.iloc[start:min(end, total_samples)]
             
             cur_res_df = pd.DataFrame(columns=['Input'] + labeler + ['Mode'])

@@ -3,7 +3,7 @@ from input_process import Labeler
 import asyncio
 
 
-st.header("Auto Data Labeling 🏷️")
+st.header("Llabeler: Auto Data Labeling 🏷️")
 
 # Task description
 st.markdown("### Define your labeling task")
@@ -119,7 +119,7 @@ if allow_real_input:
                 results = asyncio.run(predict_labels(data_csv_file))
 
             st.success('Labeling completed!', icon="✅")
-            data_for_download = results.to_csv().encode('utf-8')
+            data_for_download = results.to_csv(index=False).encode('utf-8')
             
             st.download_button(
                 label="Download data as CSV",
