@@ -1,0 +1,77 @@
+{
+  "name": "labeler_config",
+  "schema_version": "latest",
+  "metadata": {
+    "parameters": {
+      "task_name": "Financial Phrase Sentiment Classification",
+      "input_description": "A text phrase taken from a piece of financial report or news",
+      "output_classes": "negative, positive, neutral",
+      "class_num": "3",
+      "input0": "Nokia shares hit 13.21 euros on Friday , down 50 percent from the start of the year in part because of the slow introduction of touch-screen models .",
+      "output0": "negative",
+      "input1": "In September 2010 , the Finnish group agreed to buy Danish company Rose Poultry A-S for up to EUR23 .9 m in a combination of cash and stock .",
+      "output1": "positive",
+      "input2": "Finnish communication electronics components supplier Scanfil Oyj Tuesday said sales in the first half of 2006 will be 15 % lower than during the same period a year ago .",
+      "output2": "negative",
+      "input3": "Most of the dividend will go to the Grimaldi family .",
+      "output3": "neutral",
+      "input4": "Swedbank Hypotek - Is to issue a benchmark , fixed rate covered deal in Euros , maturing January 2010 .",
+      "output4": "neutral",
+      "input5": "The acquisition is expected to improve access to chrome ore resources in Turkey .",
+      "output5": "positive",
+      "input6": "The total number of voting rights is 74,612,523 .",
+      "output6": "neutral",
+      "input7": "The net sales of the Power Plants business were EUR 710.3 million in 2005 .",
+      "output7": "neutral",
+      "input8": "Copper , lead and nickel also dropped ... HBOS ( HBOS ) plummeted 20 % to 70.3 pence after saying this year+\u0088 ??",
+      "output8": "negative",
+      "input9": "Teleste and Sentry 360 have formed an integration partnership between Sentry s advanced 360-degree immersive camera product line and Teleste s enterprise video management systems .",
+      "output9": "positive",
+      "input10": "`` The implementation of these programs has had , and will have , negative impacts on 2006 and 2007 earnings , '' Mr Meiklejohn said .",
+      "output10": "negative",
+      "input11": "down to EUR5 .9 m H1 '09 3 August 2009 - Finnish media group Ilkka-Yhtyma Oyj ( HEL : ILK2S ) said today its net profit fell 45 % on the year to EUR5 .9 m in the first half of 2009 .",
+      "output11": "negative",
+      "input12": "LKAB , headquartered in Lulea , Sweden , is a high-tech mining company producing upgraded iron ore products for the steel industry .",
+      "output12": "neutral",
+      "input13": "The lay-offs will affect 240 people out of the total 320 Okmetic employees in Finland .",
+      "output13": "negative",
+      "input14": "Cision says the sale will return its U.K. operation to profitability .",
+      "output14": "positive",
+      "input15": "Outokumpu of Finland , stainless steel manufacturer , plans to enter into a supply agreement with the Indian Railways .",
+      "output15": "positive",
+      "input16": "Operating loss totalled EUR 0.3 mn , down from a profit of EUR 5.1 mn in the first half of 2009 .",
+      "output16": "negative",
+      "input17": "Philips was not available to comment on the report .",
+      "output17": "neutral",
+      "input18": "The revenues of the business reached NOK 12 million for 2008 .",
+      "output18": "neutral",
+      "input19": "18 May 2010 - Finnish electronics producer Elcoteq SE HEL : ELQAV said today that it has signed an extensive cooperation agreement on industrialisation , manufacturing , distribution and after-market services for mobile phones with Japan 's Sharp TYO : 6753 .",
+      "output19": "positive",
+      "examples": "Input: {{ input0 }} ,Output: {{ output0 }}\nInput: {{ input1 }} ,Output: {{ output1 }}\nInput: {{ input2 }} ,Output: {{ output2 }}\nInput: {{ input3 }} ,Output: {{ output3 }}\nInput: {{ input4 }} ,Output: {{ output4 }}\nInput: {{ input5 }} ,Output: {{ output5 }}\nInput: {{ input6 }} ,Output: {{ output6 }}\nInput: {{ input7 }} ,Output: {{ output7 }}\nInput: {{ input8 }} ,Output: {{ output8 }}\nInput: {{ input9 }} ,Output: {{ output9 }}\nInput: {{ input10 }} ,Output: {{ output10 }}\nInput: {{ input11 }} ,Output: {{ output11 }}\nInput: {{ input12 }} ,Output: {{ output12 }}\nInput: {{ input13 }} ,Output: {{ output13 }}\nInput: {{ input14 }} ,Output: {{ output14 }}\nInput: {{ input15 }} ,Output: {{ output15 }}\nInput: {{ input16 }} ,Output: {{ output16 }}\nInput: {{ input17 }} ,Output: {{ output17 }}\nInput: {{ input18 }} ,Output: {{ output18 }}\nInput: {{ input19 }} ,Output: {{ output19 }}\n"
+    },
+    "models": {
+      "gpt-3.5-turbo": {
+        "top_p": 1.0,
+        "model": "gpt-3.5-turbo",
+        "temperature": 1.0,
+        "system_prompt": "You will only output a code block. No text explanation unless specified in the prompt."
+      }
+    }
+  },
+  "description": "data labeler config",
+  "prompts": [
+    {
+      "name": "labeler-chatgpt",
+      "input": "I want you to help with labeling data for the task of {{ task_name }}. The feature input of the task is {{ input_description }}. The output is a {{ class_num }}-class classification result. The output classes are: {{ output_classes }}.\n        Here are several examples: {{ examples }}\n        Please act as a data labeler, and label the following data: {{ real_inputs }}. Return in JSON format. The key should be the input, and the value should be the output.",
+      "metadata": {
+        "model": {
+          "name": "gpt-3.5-turbo",
+          "settings": {
+            "model": "gpt-3.5-turbo"
+          }
+        },
+        "parameters": {}
+      }
+    }
+  ]
+}
