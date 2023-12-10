@@ -8,6 +8,7 @@ import openai
 import google.generativeai as palm
 from collections import Counter
 from statistics import mode
+import streamlit as st
 
 load_dotenv()
 
@@ -95,10 +96,12 @@ class Labeler:
         
         run_iterations = total_samples // BATCH_NUM
         result_df = pd.DataFrame(columns=['Input'] + labeler + ['Mode'])
-       
+        
+        my_bar = st.progress(0.0)
         for i in range(run_iterations):
             start = i * BATCH_NUM
             end = (i + 1) * BATCH_NUM
+            my_bar.progress((i+1)/run_iterations, text=f"Processing samples {start} to {min(end, total_samples)}")
             
             print("Processing " + str(start) + " to " + str(min(end, total_samples)) + "\n")
             cur_df = df.iloc[start:min(end, total_samples)]

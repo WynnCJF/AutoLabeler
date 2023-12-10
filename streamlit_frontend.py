@@ -109,10 +109,21 @@ if allow_real_input:
     if data_csv_file is not None:
         st.write("Dataset CSV file uploaded successfully!")
         
-        async def predict_labels(data_csv_file):
-            return await labeler.predict(data_csv_file, ["chatgpt","palm","gpt4"])
+        start_predict_button = st.button("Start Auto-Labeling!")
         
-        with st.spinner('Wait for it...'):
-            results = asyncio.run(predict_labels(data_csv_file))
+        if start_predict_button:
+            async def predict_labels(data_csv_file):
+                return await labeler.predict(data_csv_file, ["chatgpt","palm","gpt4"])
+            
+            with st.spinner('Wait for it...'):
+                results = asyncio.run(predict_labels(data_csv_file))
 
-        results.to_csv("results.csv", index=False)
+            st.success('Labeling completed!', icon="✅")
+            data_for_download = results.to_csv().encode('utf-8')
+            
+            st.download_button(
+                label="Download data as CSV",
+                data=data_for_download,
+                file_name='labeling_result.csv',
+                mime='text/csv',
+            )
