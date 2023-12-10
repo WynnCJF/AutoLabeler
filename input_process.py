@@ -17,7 +17,7 @@ palm.configure(api_key=os.getenv("palm_api_key"))
 BATCH_NUM = 10
 
 class Labeler:
-    def __init__(self, task, desc, file_path):
+    def __init__(self, task, desc, task_desc, file_path):
         """
         Constructor creates aiconfig.
         
@@ -29,7 +29,7 @@ class Labeler:
         train_df = pd.read_csv(file_path)
         classes = train_df["label"].unique()
 
-        params = self.__getTrainParams(train_df, classes, task, desc)
+        params = self.__getTrainParams(train_df, classes, task, desc, task_desc)
 
         # create model and add training parameters
         self.aiconfig = AIConfigRuntime.create(
@@ -56,7 +56,7 @@ class Labeler:
         self.aiconfig.add_model(model_name, model_settings)
         label_inputs = Prompt(
             name=name,
-            input="""I want you to help with labeling data for the task of {{ task_name }}. The feature input of the task is {{ input_description }}. The output is a {{ class_num }}-class classification result. The output classes are: {{ output_classes }}. Here are several examples: {{ examples }}
+            input="""I want you to help with labeling data for the task of {{ task_name }}. Here's a brief summary of the task: {{ task_description }}.\nThe feature input of the task is {{ input_description }}. The output is a {{ class_num }}-class classification result. The output classes are: {{ output_classes }}.\nHere are several examples: {{ examples }}
             Please act as a data labeler, and label the following data: {{ real_inputs }}. There are {{ num_predictions }} inputs and {{ num_prediction}} outputs expected. Return only the predicted outputs separated by a comma.""",
             metadata={"model": {"name": model_type,
                                 "settings": {"model": model_type}}}
@@ -137,7 +137,7 @@ class Labeler:
 
         return result_df
 
-    def __getTrainParams(self, df, classes, task_name, input_desc):
+    def __getTrainParams(self, df, classes, task_name, input_desc, task_desc):
         """
         Return global parameter database.
         """
@@ -147,6 +147,7 @@ class Labeler:
         classes_num = len(classes)
 
         params = {"task_name": task_name, "input_description": input_desc,
+                  "task_description": task_desc,
                   "output_classes": class_text, "class_num": str(classes_num)}
 
         examples_text = ""

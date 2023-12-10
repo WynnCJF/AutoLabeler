@@ -14,9 +14,15 @@ task_name = st.text_input(
     placeholder="Financial phrase sentiment classification"
 )
 
+task_description = st.text_area(
+    label="Task description",
+    value="",
+    key="task_desc1",
+)
+
 input_description = st.text_input(
     label="Input feature description",
-    value="A financial phrase from a piece of report/news to be classified.",
+    value="A financial phrase from a piece of news to be classified.",
     key="td1",
     placeholder="A financial phrase from a piece of report/news to be classified."
 )
@@ -66,7 +72,7 @@ if allow_example:
     if example_csv_file is not None:
         st.write("Example CSV file uploaded successfully!")
         # Create labeler
-        labeler = Labeler(task=task_name, desc=input_description,
+        labeler = Labeler(task=task_name, desc=input_description, task_desc=task_description,
                           file_path=example_csv_file)
 
         # Create LLM labelers
