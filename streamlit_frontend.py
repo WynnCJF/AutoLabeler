@@ -1,4 +1,5 @@
 import streamlit as st
+from input_process import Labeler
 
 
 st.header("Auto Data Labeling 🏷️")
@@ -50,7 +51,8 @@ if len(output_classes_lst) > 0:
     else:
         allow_example = True
 
-            
+# Read in example file
+allow_real_input = False
 if allow_example:
     st.divider()
     st.markdown("### Upload an example dataset")
@@ -59,10 +61,17 @@ if allow_example:
         type="csv",
         key="ud1"
     )
-    
-# TODO: parse the uploaded example file
-parse_done = True
-if allow_example and parse_done:
+
+    if example_csv_file is not None:
+        st.write("Example CSV file uploaded successfully!")
+        # Create labeler
+        labeler = Labeler(task=task_name, desc=input_description, file_path=example_csv_file)
+        allow_real_input = True
+        
+    else:
+        st.write("Example CSV file not uploaded.")
+
+if allow_real_input:
     st.divider()
     st.markdown("### Upload the dataset to be labeled")
     data_csv_file = st.file_uploader(
