@@ -12,15 +12,18 @@ load_dotenv()
 openai.api_key = os.getenv("openai_api_key")
 palm.configure(api_key=os.getenv("palm_api_key"))
 
+BATCH_NUM = 20
+
 
 class Labeler:
     def __init__(self, task, desc, file_path):
         """
-        Constructor creates aiconfig
+        Constructor creates aiconfig.
+        
         Inputs:
-        task: string - labelling task description
-        desc: string - description of input data
-        filepath: string - path to csv file containing training examples
+            task: string - labelling task description
+            desc: string - description of input data
+            filepath: string - path to csv file containing training examples
         """
         train_df = pd.read_csv(file_path)
         classes = train_df["label"].unique()
@@ -36,11 +39,12 @@ class Labeler:
         
     def create_labeler(self, name, model_type="gpt-3.5-turbo", model_settings=None):
         """
-        Create a lastmileAI model and prompt in aiconfig to be used for prediction
+        Create a lastmileAI model and prompt in aiconfig to be used for prediction.
+        
         Inputs:
-        # name: string - name of labeler
-        # model_type - string : model of LLM used
-        # model_settings - python dictionary (contents depend on model used)
+            name: string - name of labeler
+            model_type: string - model of LLM used
+            model_settings: python dictionary (contents depend on model used)
         """
         model_name = model_type
 
@@ -61,52 +65,71 @@ class Labeler:
 
     def saveAIConfig(self, fname, path="./"):
         """
-        Saves AIConfig to a JSON file
-        fname: string - name of file (must end with .json)
-        path: directory to save file to
+        Saves AIConfig to a JSON file.
+        
+        Inputs:
+            fname: string - name of file (must end with .json)
+            path: directory to save file to
         """
         self.aiconfig.save(path+fname, include_outputs=False)
 
 
     async def predict(self, path, labeler, mode=True):
         """
-        Generate predictions to text inputs
-        path: string - file path to csv file with text inputs (one column, with header)
-        labeler: string or list[string] - names of labelers to be used for prediction
-        mode: bool - If true and labeler contains 3 elements or more, mode is added to output dataframe
+        Generate predictions to text inputs.
+        
+        Inputs:
+            path: string - file path to csv file with text inputs (one column, with header)
+            labeler: string or list[string] - names of labelers to be used for prediction
+            mode: bool - If true and labeler contains 3 elements or more, mode is added to output dataframe
 
-        Returns pandas dataframe with original input and predictions
+        Returns pandas dataframe with original input and predictions.
         """
         df = pd.read_csv(path)
-        print("labeling " + str(df.shape[0]) + " entries\n")
-
-        params = self.__getPredictParams(df)
-
+        total_samples = df.shape[0]
+        print("Receiving " + str(total_samples) + " entries in total\n")
+        
         if not isinstance(labeler, list):
             labeler = [labeler]
+        
+        run_iterations = total_samples // BATCH_NUM
+        result_df = pd.DataFrame(columns=['Input'] + labeler + ['Mode'])
+       
+        for i in range(run_iterations):
+            start = i * BATCH_NUM
+            end = (i + 1) * BATCH_NUM
+            
+            print("Processing " + str(start) + " to " + str(min(end, total_samples)) + "\n")
+            cur_df = df.iloc[start:min(end, total_samples)]
+            
+            cur_res_df = pd.DataFrame(columns=['Input'] + labeler + ['Mode'])
+            cur_res_df['Input'] = cur_df['Input']
+            
+            params = self.__getPredictParams(cur_df)
+            
+            success = []
+            for model in labeler:
+                try:
+                    completion = await self.aiconfig.run(model, params=params)
+                    pred_str = self.aiconfig.get_output_text(model)
+                    pred_str = pred_str[1:-1]
+                    pred_str = pred_str.replace('\'', '')
+                    pred_str = pred_str.replace('\"', '')
+                    predictions_lst = [x.strip() for x in pred_str.split(',')]
+                    cur_res_df[model] = predictions_lst
+                    success.append(model)
+                except:
+                    print("error in " + model + " output\n")
 
-        success = []
-        for model in labeler:
-            try:
-                completion = await self.aiconfig.run(model, params=params)
-                pred_str = self.aiconfig.get_output_text(model)
-                pred_str = pred_str[1:-1]
-                pred_str = pred_str.replace('\'', '')
-                pred_str = pred_str.replace('\"', '')
-                predictions_lst = [x.strip() for x in pred_str.split(',')]
-                df[model] = predictions_lst
-                success.append(model)
-            except:
-                print("error in " + model + " output\n")
+            if mode:
+                cur_res_df['Mode'] = cur_res_df[success].mode(axis=1).iloc[:, 0]
+                result_df = pd.concat([result_df, cur_res_df], ignore_index=True)
 
-        if (len(success) > 2) and mode:
-            df['Mode'] = df[success].mode(axis=1).iloc[:, 0]
-
-        return df
+        return result_df
 
     def __getTrainParams(self, df, classes, task_name, input_desc):
         """
-        Returns global parameter database
+        Return global parameter database.
         """
         assert (df.shape[0] <= 100)
 
@@ -129,10 +152,11 @@ class Labeler:
 
     def __getPredictParams(self, df):
         """
-        Returns parameter to be used in predicting labels of testing dataset
+        Return parameter to be used in predicting labels of testing dataset.
         """
         input_text = ""
         for i in range(df.shape[0]):
             input_text = input_text + str(i) + ". " + df.iloc[i, 0] + "\n"
 
         return {"real_inputs": input_text, "num_predictions": str(df.shape[0])}
+

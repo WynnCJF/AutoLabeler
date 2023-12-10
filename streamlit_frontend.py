@@ -1,5 +1,6 @@
 import streamlit as st
 from input_process import Labeler
+import asyncio
 
 
 st.header("Auto Data Labeling 🏷️")
@@ -65,9 +66,28 @@ if allow_example:
     if example_csv_file is not None:
         st.write("Example CSV file uploaded successfully!")
         # Create labeler
-        labeler = Labeler(task=task_name, desc=input_description, file_path=example_csv_file)
-        allow_real_input = True
+        labeler = Labeler(task=task_name, desc=input_description,
+                          file_path=example_csv_file)
+
+        # Create LLM labelers
+        # GPT-3.5
+        labeler.create_labeler("chatgpt", "gpt-3.5-turbo")
+
+        # PaLM
+        palm_settings = {"topK": 40, "topP": 0.95, "maxOutputTokens": 1024, "model": "models/text-bison-001",
+                         "system_prompt": "You will only output a code block. No text explanation unless specified in the prompt."}
+        labeler.create_labeler("palm", "models/text-bison-001", palm_settings)
+
+        # GPT-4
+        gpt4_settings = {"top_p": 1, "model": "gpt-4", "temperature": 1, "remember_chat_context": False,
+                         "system_prompt": "You will only output a code block. No text explanation unless specified in the prompt. Only return a list of outputs."}
+        labeler.create_labeler("gpt4", "gpt-4", gpt4_settings)
         
+        # Save configuration to JSOn
+        labeler.saveAIConfig("newconfig.json")
+
+        allow_real_input = True
+
     else:
         st.write("Example CSV file not uploaded.")
 
@@ -79,3 +99,14 @@ if allow_real_input:
         type="csv",
         key="ud2",
     )
+    
+    if data_csv_file is not None:
+        st.write("Dataset CSV file uploaded successfully!")
+        
+        async def predict_labels(data_csv_file):
+            return await labeler.predict(data_csv_file, ["chatgpt","palm","gpt4"])
+        
+        with st.spinner('Wait for it...'):
+            results = asyncio.run(predict_labels(data_csv_file))
+
+        results.to_csv("results.csv", index=False)
