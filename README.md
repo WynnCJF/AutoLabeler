@@ -1,5 +1,11 @@
 # Llabeler: LLM-powered Auto Labeler 🏷️
 
+### Contributors:
+* [Frank Hsu](https://github.com/Wei-Hsi)
+* [Jiafeng (Wynn) Chen](https://github.com/WynnCJF)
+* [Justin Ng](https://github.com/jastinjn)
+* [Yoyo Chan](https://github.com/wingyiuc)
+
 ## Inspiration
 Not all NLP tasks require an LLM. There still exist lots of simple but specific NLP tasks (e.g. search query classification for a search engine), which be carried out by smaller, faster, and more resource-efficient models -- as long as we have labelled data for supervised training. Traditionally, when faced with data labeling tasks, we have to engage outsourcing human labeler teams and divide them into multiple groups to ensure high labeling accuracy. Our project, Llabeler, aims to leverage the outstanding few-shot learning abilities of LLMs to conduct fast and automatic data labeling for simple text classification tasks.
 
@@ -25,9 +31,3 @@ Looking forward, the Auto Labeler project has big potential beyond the hackathon
 ```bash
 streamlit run app.py
 ```
-
-### Contributors:
-* [Frank Hsu](https://github.com/Wei-Hsi)
-* [Jiafeng (Wynn) Chen](https://github.com/WynnCJF)
-* [Justin Ng](https://github.com/jastinjn)
-* [Yoyo Chan](https://github.com/wingyiuc)
