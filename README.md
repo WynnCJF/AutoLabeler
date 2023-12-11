@@ -29,5 +29,5 @@ streamlit run app.py
 ### Contributors:
 * [Frank Hsu](https://github.com/Wei-Hsi)
 * [Jiafeng (Wynn) Chen](https://github.com/WynnCJF)
-* Justin Ng
-* Yoyo Chan
+* [Justin Ng](https://github.com/jastinjn)
+* [Yoyo Chan](https://github.com/wingyiuc)
